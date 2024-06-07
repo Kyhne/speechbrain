@@ -7,7 +7,7 @@ Authors
 """
 
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any, Optional, List
 
 import torch  # noqa 42
 from torch import nn
@@ -221,6 +221,8 @@ class TransformerASR(TransformerInterface):
     use_linear_after_conv: bool, optional
         If True, will apply a linear transformation of size input_size//2.
         -> Branchformer
+    mwmha_windows: list of ints, optional
+        List of window sizes for the MultiWindowMultiheadAttention module.
 
     Example
     -------
@@ -260,6 +262,7 @@ class TransformerASR(TransformerInterface):
         csgu_linear_units: Optional[int] = 3072,
         gate_activation: Optional[nn.Module] = nn.Identity,
         use_linear_after_conv: Optional[bool] = False,
+        mwmha_windows: Optional[List[int]] = []
     ):
         super().__init__(
             d_model=d_model,
@@ -282,6 +285,7 @@ class TransformerASR(TransformerInterface):
             csgu_linear_units=csgu_linear_units,
             gate_activation=gate_activation,
             use_linear_after_conv=use_linear_after_conv,
+            mwmha_windows=mwmha_windows
         )
 
         self.custom_src_module = ModuleList(
