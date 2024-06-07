@@ -222,7 +222,7 @@ class TransformerASR(TransformerInterface):
         If True, will apply a linear transformation of size input_size//2.
         -> Branchformer
     mwmha_windows: list of ints, optional
-        List of window sizes for the MultiWindowMultiheadAttention module.
+        List of window sizes for Multi-Window Multi-head Attention.
 
     Example
     -------

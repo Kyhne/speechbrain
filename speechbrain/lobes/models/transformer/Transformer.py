@@ -91,7 +91,7 @@ class TransformerInterface(nn.Module):
         If True, will apply a linear transformation of size input_size//2.
         -> Branchformer
     mwmha_windows: list of ints, optional
-        List of window sizes for the MultiWindowMultiheadAttention module.
+        List of window sizes for Multi-Window Multi-head Attention.
     """
 
     def __init__(
@@ -322,7 +322,7 @@ class TransformerEncoderLayer(nn.Module):
         Whether the encoder should be causal or not (the decoder is always causal).
         If causal the Conformer convolutional layer is causal.
     mwmha_windows: list of ints, optional
-        List of window sizes for the MultiWindowMultiheadAttention module.
+        List of window sizes for Multi-Window Multi-head Attention.
 
     Example
     -------
@@ -512,7 +512,7 @@ class TransformerEncoder(nn.Module):
     ffn_cnn_kernel_size_list: list of int
         conv kernel size of 2 1d-convs if ffn_type is 1dcnn
     mwmha_windows: list of ints, optional
-        List of window sizes for the MultiWindowMultiheadAttention module.
+        List of window sizes for Multi-Window Multi-head Attention.
 
     Example
     -------
