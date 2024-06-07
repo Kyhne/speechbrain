@@ -5,7 +5,7 @@ Authors
 """
 
 import math
-from typing import Optional, List
+from typing import List, Optional
 
 import numpy as np
 import torch
@@ -122,7 +122,7 @@ class TransformerInterface(nn.Module):
         csgu_linear_units: Optional[int] = 3072,
         gate_activation: Optional[nn.Module] = nn.Identity,
         use_linear_after_conv: Optional[bool] = False,
-        mwmha_windows: Optional[List[int]] = []
+        mwmha_windows: Optional[List[int]] = [],
     ):
         super().__init__()
         self.causal = causal
@@ -133,7 +133,12 @@ class TransformerInterface(nn.Module):
         self.decoder_kdim = decoder_kdim
         self.decoder_vdim = decoder_vdim
 
-        assert attention_type in ["regularMHA", "RelPosMHAXL", "hypermixing", "MWMHA"]
+        assert attention_type in [
+            "regularMHA",
+            "RelPosMHAXL",
+            "hypermixing",
+            "MWMHA",
+        ]
         assert positional_encoding in ["fixed_abs_sine", None]
 
         assert (
@@ -170,7 +175,7 @@ class TransformerInterface(nn.Module):
                     attention_type=self.attention_type,
                     kdim=self.encoder_kdim,
                     vdim=self.encoder_vdim,
-                    mwmha_windows=mwmha_windows
+                    mwmha_windows=mwmha_windows,
                 )
             elif encoder_module == "conformer":
                 self.encoder = ConformerEncoder(
@@ -343,7 +348,7 @@ class TransformerEncoderLayer(nn.Module):
         ffn_type="regularFFN",
         ffn_cnn_kernel_size_list=[3, 3],
         causal=False,
-        mwmha_windows: Optional[List[int]] = []
+        mwmha_windows: Optional[List[int]] = [],
     ):
         super().__init__()
 
@@ -369,11 +374,13 @@ class TransformerEncoderLayer(nn.Module):
                 fix_tm_hidden_size=False,
             )
         elif attention_type == "MWMHA":
-            self.self_att = sb.nnet.multiwindow_attention.MultiWindowMultiheadAttention(
-                nhead=nhead,
-                d_model=d_model,
-                dropout=dropout,
-                mwmha_windows=mwmha_windows
+            self.self_att = (
+                sb.nnet.multiwindow_attention.MultiWindowMultiheadAttention(
+                    nhead=nhead,
+                    d_model=d_model,
+                    dropout=dropout,
+                    mwmha_windows=mwmha_windows,
+                )
             )
 
         if ffn_type == "regularFFN":
@@ -534,7 +541,7 @@ class TransformerEncoder(nn.Module):
         attention_type="regularMHA",
         ffn_type="regularFFN",
         ffn_cnn_kernel_size_list=[3, 3],
-        mwmha_windows: Optional[List[int]] = []
+        mwmha_windows: Optional[List[int]] = [],
     ):
         super().__init__()
 
@@ -553,7 +560,7 @@ class TransformerEncoder(nn.Module):
                     attention_type=attention_type,
                     ffn_type=ffn_type,
                     ffn_cnn_kernel_size_list=ffn_cnn_kernel_size_list,
-                    mwmha_windows=mwmha_windows
+                    mwmha_windows=mwmha_windows,
                 )
                 for i in range(num_layers)
             ]
