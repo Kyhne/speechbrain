@@ -11,10 +11,10 @@
 
 seed: 74443
 __set_seed: !apply:torch.manual_seed [!ref <seed>]
-output_wer_folder: !ref results/mwmha_transformer_medium/<seed>
-wer_file: !ref <output_wer_folder>/wer.txt
-save_folder: !ref <output_wer_folder>/save
-train_log: !ref <output_wer_folder>/train_log.txt
+output_folder: !ref results/mwmha_transformer_medium/<seed>
+output_wer_folder: !ref <output_folder>/
+save_folder: !ref <output_folder>/save
+train_log: !ref <output_folder>/train_log.txt
 
 # Language model (LM) pretraining
 # NB: To avoid mismatch, the speech recognizer must be trained with the same
@@ -35,11 +35,11 @@ dev_splits: ["dev-clean"]
 test_splits: ["test-clean", "test-other"]
 # test_splits: ["test-other"]
 skip_prep: False
-train_csv: !ref <output_wer_folder>/train.csv
-valid_csv: !ref <output_wer_folder>/dev-clean.csv
+train_csv: !ref <output_folder>/train.csv
+valid_csv: !ref <output_folder>/dev-clean.csv
 test_csv:
-    - !ref <output_wer_folder>/test-clean.csv
-    - !ref <output_wer_folder>/test-other.csv
+    - !ref <output_folder>/test-clean.csv
+    - !ref <output_folder>/test-other.csv
 
 # Training parameters
 # To make Transformers converge, the global bath size should be large enough.
