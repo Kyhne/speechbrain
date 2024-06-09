@@ -274,17 +274,25 @@ checkpointer: !new:speechbrain.utils.checkpoints.Checkpointer
 epoch_counter: !new:speechbrain.utils.epoch_loop.EpochCounter
     limit: !ref <number_of_epochs>
 
-augmentation: !new:speechbrain.lobes.augment.SpecAugment
-    time_warp: True
-    time_warp_window: 5
-    time_warp_mode: bicubic
-    freq_mask: True
-    n_freq_mask: 2
-    time_mask: True
-    n_time_mask: 2
-    replace_with_zero: False
-    freq_mask_width: 30
-    time_mask_width: 40
+# Time warp (dim=1 default)
+time_warp: !new:speechbrain.augment.freq_domain.Warping
+
+# Time masking (dim=1 default)
+time_drop: !new:speechbrain.augment.freq_domain.SpectrogramDrop
+    drop_length_low: 0
+    drop_length_high: 40
+    drop_count_low: 2
+    drop_count_high: 2
+    replace: "mean"
+
+# Freq masking
+freq_drop: !new:speechbrain.augment.freq_domain.SpectrogramDrop
+    drop_length_low: 0
+    drop_length_high: 30
+    drop_count_low: 2
+    drop_count_high: 2
+    replace: "mean"
+    dim: 2
 
 speed_perturb: !new:speechbrain.processing.speech_augmentation.SpeedPerturb
     orig_freq: !ref <sample_rate>
