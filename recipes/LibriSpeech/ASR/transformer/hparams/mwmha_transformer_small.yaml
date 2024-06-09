@@ -12,7 +12,7 @@
 seed: 74443
 __set_seed: !apply:torch.manual_seed [!ref <seed>]
 output_folder: !ref results/mwmha_transformer_small/<seed>
-wer_file: !ref <output_folder>/wer.txt
+output_wer_folder: !ref <output_folder>/
 save_folder: !ref <output_folder>/save
 train_log: !ref <output_folder>/train_log.txt
 
@@ -205,34 +205,48 @@ Adam: !name:torch.optim.Adam
 #    momentum: 0.99
 #    nesterov: True
 
-valid_search: !new:speechbrain.decoders.S2STransformerBeamSearch
-    modules: [!ref <Transformer>, !ref <seq_lin>, !ref <ctc_lin>]
-    bos_index: !ref <bos_index>
+scorer_valid_search: !new:speechbrain.decoders.scorer.ScorerBuilder
+    full_scorers: [!ref <ctc_scorer>]
+    weights:
+        ctc: !ref <ctc_weight_decode>
+
+scorer_test_search: !new:speechbrain.decoders.scorer.ScorerBuilder
+    full_scorers: [!ref <ctc_scorer>, !ref <transformerlm_scorer>]
+    weights:
+        ctc: !ref <ctc_weight_decode>
+        transformerlm: !ref <lm_weight>
+        
+ctc_scorer: !new:speechbrain.decoders.scorer.CTCScorer
     eos_index: !ref <eos_index>
     blank_index: !ref <blank_index>
+    ctc_fc: !ref <ctc_lin>
+
+transformerlm_scorer: !new:speechbrain.decoders.scorer.TransformerLMScorer
+    language_model: !ref <lm_model>
+    temperature: 1.15
+
+valid_search: !new:speechbrain.decoders.S2STransformerBeamSearcher
+    modules: [!ref <Transformer>, !ref <seq_lin>]
+    bos_index: !ref <bos_index>
+    eos_index: !ref <eos_index>
     min_decode_ratio: !ref <min_decode_ratio>
     max_decode_ratio: !ref <max_decode_ratio>
     beam_size: !ref <valid_beam_size>
-    ctc_weight: !ref <ctc_weight_decode>
     using_eos_threshold: False
-    length_normalization: False
+    length_normalization: True
+    scorer: !ref <scorer_valid_search>
 
-
-test_search: !new:speechbrain.decoders.S2STransformerBeamSearch
-    modules: [!ref <Transformer>, !ref <seq_lin>, !ref <ctc_lin>]
+test_search: !new:speechbrain.decoders.S2STransformerBeamSearcher
+    modules: [!ref <Transformer>, !ref <seq_lin>]
     bos_index: !ref <bos_index>
     eos_index: !ref <eos_index>
-    blank_index: !ref <blank_index>
     min_decode_ratio: !ref <min_decode_ratio>
     max_decode_ratio: !ref <max_decode_ratio>
     beam_size: !ref <test_beam_size>
-    ctc_weight: !ref <ctc_weight_decode>
-    lm_weight: !ref <lm_weight>
-    lm_modules: !ref <lm_model>
     temperature: 1.15
-    temperature_lm: 1.15
     using_eos_threshold: False
     length_normalization: True
+    scorer: !ref <scorer_test_search>
 
 log_softmax: !new:torch.nn.LogSoftmax
     dim: -1
@@ -260,21 +274,39 @@ checkpointer: !new:speechbrain.utils.checkpoints.Checkpointer
 epoch_counter: !new:speechbrain.utils.epoch_loop.EpochCounter
     limit: !ref <number_of_epochs>
 
-augmentation: !new:speechbrain.lobes.augment.SpecAugment
-    time_warp: True
-    time_warp_window: 5
-    time_warp_mode: bicubic
-    freq_mask: True
-    n_freq_mask: 2
-    time_mask: True
-    n_time_mask: 2
-    replace_with_zero: False
-    freq_mask_width: 30
-    time_mask_width: 40
+# Time warp (dim=1 default)
+time_warp: !new:speechbrain.augment.freq_domain.Warping
 
-speed_perturb: !new:speechbrain.processing.speech_augmentation.SpeedPerturb
+# Time masking (dim=1 default)
+time_drop: !new:speechbrain.augment.freq_domain.SpectrogramDrop
+    drop_length_low: 0
+    drop_length_high: 40
+    drop_count_low: 2
+    drop_count_high: 2
+    replace: "mean"
+
+# Freq masking
+freq_drop: !new:speechbrain.augment.freq_domain.SpectrogramDrop
+    drop_length_low: 0
+    drop_length_high: 30
+    drop_count_low: 2
+    drop_count_high: 2
+    replace: "mean"
+    dim: 2
+
+# Speed perturbation
+speed_perturb: !new:speechbrain.augment.time_domain.SpeedPerturb
     orig_freq: !ref <sample_rate>
     speeds: [95, 100, 105]
+
+fea_augment: !new:speechbrain.augment.augmenter.Augmenter
+    min_augmentations: 3
+    max_augmentations: 3
+    augment_prob: 1.0
+    augmentations: [
+        !ref <time_drop>,
+        !ref <freq_drop>,
+        !ref <time_warp>]
 
 compute_features: !new:speechbrain.lobes.features.Fbank
     sample_rate: !ref <sample_rate>
