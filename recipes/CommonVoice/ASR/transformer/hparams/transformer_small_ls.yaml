@@ -220,7 +220,7 @@ model: !name:speechbrain.utils.fetching.fetch
     source: /home/student.aau.dk/nkahne20/results/transformer_small_nopad/74443/save/CKPT+2024-05-06+12-00-09+00/
     
 checkpointer: !new:speechbrain.utils.checkpoints.Checkpointer
-    checkpoints_dir: !ref <save_folder>
+    checkpoints_dir: /home/student.aau.dk/nkahne20/results/transformer_small_nopad/74443/save
     recoverables:
         model: !ref <model>
         noam_scheduler: !ref <noam_annealing>
