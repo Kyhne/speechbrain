@@ -161,9 +161,6 @@ modules:
     seq_lin: !ref <seq_lin>
     ctc_lin: !ref <ctc_lin>
 
-model: !new:torch.nn.ModuleList
-    - [!ref <CNN>, !ref <Transformer>, !ref <seq_lin>, !ref <ctc_lin>]
-
 # We define two optimizers as we have two stages (training + finetuning)
 Adam: !name:torch.optim.AdamW
     lr: !ref <lr_adam>
@@ -217,7 +214,11 @@ seq_cost: !name:speechbrain.nnet.losses.kldiv_loss
 noam_annealing: !new:speechbrain.nnet.schedulers.NoamScheduler
     lr_initial: !ref <lr_adam>
     n_warmup_steps: !ref <warmup_steps>
-
+    
+model: !name:speechbrain.utils.fetching.fetch
+    filename: model.ckpt
+    source: /home/student.aau.dk/nkahne20/results/transformer_small_nopad/74443/save/CKPT+2024-05-06+12-00-09+00/
+    
 checkpointer: !new:speechbrain.utils.checkpoints.Checkpointer
     checkpoints_dir: !ref <save_folder>
     recoverables:
@@ -277,19 +278,3 @@ error_rate_computer: !name:speechbrain.utils.metric_stats.ErrorRateStats
 acc_computer: !name:speechbrain.utils.Accuracy.AccuracyStats
 cer_computer: !name:speechbrain.utils.metric_stats.ErrorRateStats
     split_tokens: True
-
-############################## Checkpoint for Inference ###################################
-pretrained_ckpt: /home/student.aau.dk/nkahne20/results/transformer_small_nopad/74443/save/CKPT+2024-05-06+12-00-09+00/model.ckpt  # Path to your final checkpoint
-
-# Load the pre-trained model
-pretrained_model: !new:speechbrain.inference.ASR.EncoderDecoderASR.from_hparams
-    source: !ref <pretrained_ckpt>
-    hparams_file: /home/student.aau.dk/nkahne20/results/transformer_small_nopad/74443/hyperparams.yaml
-
-# Inference setup
-inference_params:
-    test: True  # Switch to inference mode
-    test_search: !ref <test_search>
-    normalize: !ref <normalize>
-    modules: !ref <model>
-    checkpointer: !ref <checkpointer>
