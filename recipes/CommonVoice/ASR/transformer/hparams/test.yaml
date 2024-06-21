@@ -34,10 +34,10 @@ avoid_if_longer_than: 10.0
 ckpt_interval_minutes: 15 # save checkpoint every N min
 
 ####################### Training Parameters ####################################
-number_of_epochs: 50
-batch_size: 32 # This works with a 32GB GPU ! (bs * nb_gpu * accum) > 128 !
+number_of_epochs: 110
+batch_size: 16 # This works with a 32GB GPU ! (bs * nb_gpu * accum) > 128 !
 ctc_weight: 0.3
-grad_accumulation_factor: 4
+grad_accumulation_factor: 1
 loss_reduction: 'batchmean'
 sorting: random
 num_workers: 4
@@ -45,9 +45,9 @@ precision: fp32 # bf16, fp16 or fp32
 
 # stages related parameters
 lr_adam: 0.0008
-weight_decay: 0.01
-warmup_steps: 25000
-augment_warmup: 8000
+#weight_decay: 0.01
+#warmup_steps: 25000
+#augment_warmup: 8000
 
 # BPE parameters
 token_type: unigram  # ["unigram", "bpe", "char"]
@@ -93,6 +93,9 @@ valid_dataloader_opts:
 
 test_dataloader_opts:
     batch_size: 1
+    collate_fn: !name:speechbrain.dataio.batch.PaddedBatch
+        padding_kwargs:
+            value: !ref <pad_index>
 
 
 ####################### Model Parameters ###########################
@@ -108,7 +111,7 @@ output_neurons: 5000
 
 # Outputs
 blank_index: 0
-label_smoothing: 0.1
+label_smoothing: 0
 pad_index: 0
 bos_index: 1
 eos_index: 2
@@ -203,6 +206,7 @@ test_search: !new:speechbrain.decoders.S2STransformerBeamSearcher
     beam_size: !ref <test_beam_size>
     temperature: 1.15
     using_eos_threshold: True
+    length_normalization: True
     scorer: !ref <scorer>
 
 log_softmax: !new:torch.nn.LogSoftmax
@@ -224,6 +228,15 @@ noam_annealing: !new:speechbrain.nnet.schedulers.NoamScheduler
 normalize: !new:speechbrain.processing.features.InputNormalization
     norm_type: global
     update_until_epoch: 4
+
+folder: /home/student.aau.dk/nkahne20/results/mwmha_30sec_small/74443/save/
+checkpointer: !new:speechbrain.utils.checkpoints.Checkpointer
+    checkpoints_dir: !ref <folder>
+    recoverables:
+        model: !ref <model>
+        noam_scheduler: !ref <noam_annealing>
+        normalizer: !ref <normalize>
+        counter: !ref <epoch_counter>
 
 ############################## Augmentations ###################################
 
@@ -265,8 +278,6 @@ compute_features: !new:speechbrain.lobes.features.Fbank
 train_logger: !new:speechbrain.utils.train_logger.FileTrainLogger
     save_file: !ref <train_log>
 
-checkpointer: !new:speechbrain.utils.checkpoints.Checkpointer
-    checkpoints_dir: !ref <save_folder>
 
 error_rate_computer: !name:speechbrain.utils.metric_stats.ErrorRateStats
 acc_computer: !name:speechbrain.utils.Accuracy.AccuracyStats
@@ -274,6 +285,7 @@ cer_computer: !name:speechbrain.utils.metric_stats.ErrorRateStats
     split_tokens: True
 
 pretrainer: !new:speechbrain.utils.parameter_transfer.Pretrainer
+    collect_in: /home/student.aau.dk/nkahne20/results/mwmha_30sec_small/74443/save/CKPT+2024-05-12+18-31-47+00
     loadables:
         model: !ref <model>
     paths:
