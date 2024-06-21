@@ -45,9 +45,9 @@ precision: fp32 # bf16, fp16 or fp32
 
 # stages related parameters
 lr_adam: 0.0008
-#weight_decay: 0.01
-#warmup_steps: 25000
-#augment_warmup: 8000
+weight_decay: 0.01
+warmup_steps: 25000
+augment_warmup: 8000
 
 # BPE parameters
 token_type: unigram  # ["unigram", "bpe", "char"]
