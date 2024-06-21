@@ -228,7 +228,10 @@ noam_annealing: !new:speechbrain.nnet.schedulers.NoamScheduler
 normalize: !new:speechbrain.processing.features.InputNormalization
     norm_type: global
     update_until_epoch: 4
-
+    
+epoch_counter: !new:speechbrain.utils.epoch_loop.EpochCounter
+    limit: !ref <number_of_epochs>
+    
 folder: /home/student.aau.dk/nkahne20/results/mwmha_30sec_small/74443/save/
 checkpointer: !new:speechbrain.utils.checkpoints.Checkpointer
     checkpoints_dir: !ref <folder>
